@@ -448,7 +448,7 @@
             `).join('');
         }
 
-        // 5. UPLOAD WITH DEBUG ALERTS
+        // 5. UPLOAD
         async function handleUploadTrack(e) {
             e.preventDefault();
             
@@ -456,28 +456,19 @@
             const genre = document.getElementById('uploadGenre').value;
             const file = document.getElementById('uploadFile').files[0];
 
-            if (!file) return alert("ERROR: No file selected. Please pick an MP3.");
-            if (!currentSession) return alert("ERROR: You are not logged in.");
-
-            alert("Step 1: Starting upload for file: " + file.name);
+            if (!file) return alert("Please select a file.");
+            if (!currentSession) return alert("Please log in first.");
 
             try {
                 const fileExt = file.name.split('.').pop();
                 const fileName = `${Date.now()}.${fileExt}`;
                 const filePath = `${currentSession.user.id}/${fileName}`;
 
-                alert("Step 2: Trying to upload to Supabase Storage...");
                 const { error: uploadError } = await supabaseClient.storage.from('audio').upload(filePath, file);
-                
-                if (uploadError) {
-                    alert("STORAGE ERROR: " + uploadError.message);
-                    return;
-                }
+                if (uploadError) throw uploadError;
 
-                alert("Step 3: Storage upload successful! Getting URL...");
                 const { data: urlData } = supabaseClient.storage.from('audio').getPublicUrl(filePath);
                 
-                alert("Step 4: Trying to save to Database...");
                 const { error: dbError } = await supabaseClient.from('songs').insert([{
                     title: title,
                     artist: currentSession.user.email.split('@')[0],
@@ -489,22 +480,35 @@
                     cover: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=400&q=80'
                 }]);
                 
-                if (dbError) {
-                    alert("DATABASE ERROR: " + dbError.message);
-                    return;
-                }
+                if (dbError) throw dbError;
 
-                alert("Step 5: SUCCESS! Everything saved.");
+                alert("Success! Song uploaded.");
                 closeUploadModal();
                 document.getElementById('uploadForm').reset();
                 fetchSongs(); 
                 
             } catch (error) {
-                alert("UNKNOWN ERROR: " + error.message);
+                alert("UPLOAD ERROR: " + error.message);
             }
         }
 
         async function approveTrack(id) {
             if (currentRole !== 'admin') return alert('Access Denied');
             const { error } = await supabaseClient.from('songs').update({ status: 'Approved' }).eq('id', id);
-            if (error) alert
+            if (error) alert(error.message);
+            else fetchSongs();
+        }
+
+        async function rejectTrack(id) {
+            if (currentRole !== 'admin') return alert('Access Denied');
+            const { error } = await supabaseClient.from('songs').delete().eq('id', id);
+            if (error) alert(error.message);
+            else fetchSongs();
+        }
+
+        // 6. AUDIO PLAYER
+        const audioPlayer = document.getElementById('audioPlayer');
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const seekSlider = document.getElementById('seekSlider');
+        const currentTimeText = document.getElementById('currentTimeText');
+        const durationTimeText = document
