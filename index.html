@@ -35,7 +35,6 @@
         .animate-spin-slow { animation: spin 8s linear infinite; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
         
-        /* Custom Audio Slider Styling */
         input[type=range] { -webkit-appearance: none; background: transparent; }
         input[type=range]::-webkit-slider-thumb {
             -webkit-appearance: none; height: 12px; width: 12px; border-radius: 50%;
@@ -49,9 +48,8 @@
 </head>
 <body class="bg-darkbg text-slate-100 flex min-h-screen pb-28 overflow-x-hidden">
 
-    <!-- 🟢 LEFT SIDEBAR (Desktop Only) -->
+    <!-- LEFT SIDEBAR -->
     <aside class="hidden lg:flex flex-col w-64 glass-panel border-r border-slate-800 p-6 sticky top-0 h-screen z-50">
-        <!-- Logo -->
         <div class="flex items-center gap-3 cursor-pointer mb-10" onclick="switchView('home')">
             <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-500 to-brand-accent flex items-center justify-center text-white shadow-lg shadow-brand-500/20">
                 <i class="fa-solid font-bold fa-compact-disc text-xl animate-spin-slow"></i>
@@ -59,7 +57,6 @@
             <span class="text-xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-teal-400 via-cyan-400 to-purple-500">BeatPulse</span>
         </div>
 
-        <!-- Navigation -->
         <nav class="flex flex-col gap-2 flex-1">
             <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Menu</p>
             <button onclick="switchView('home')" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 text-slate-300 hover:text-white transition-colors font-medium text-sm text-left">
@@ -81,25 +78,22 @@
         </nav>
     </aside>
 
-    <!-- 🟢 MAIN CONTENT AREA -->
+    <!-- MAIN CONTENT -->
     <div class="flex-1 flex flex-col min-w-0">
         
-        <!-- Top Bar (Search & Auth) -->
+        <!-- Top Bar -->
         <header class="sticky top-0 z-40 w-full glass-panel border-b border-borderbg/50 px-4 lg:px-8 py-3 flex items-center justify-between gap-4">
-            <!-- Mobile Logo -->
             <div class="flex lg:hidden items-center gap-3 cursor-pointer" onclick="switchView('home')">
                 <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-brand-500 to-brand-accent flex items-center justify-center text-white">
                     <i class="fa-solid fa-compact-disc text-sm"></i>
                 </div>
             </div>
 
-            <!-- Search -->
             <div class="flex-1 max-w-lg relative">
                 <input type="text" id="globalSearch" placeholder="Search for songs, albums, or artists..." class="w-full bg-slate-800/80 border border-slate-700/80 rounded-full py-2.5 pl-10 pr-4 text-sm text-slate-200 placeholder-slate-400 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all">
                 <i class="fa-solid fa-magnifying-glass absolute left-4 top-3.5 text-slate-400 text-sm"></i>
             </div>
 
-            <!-- Auth Buttons -->
             <div class="flex items-center gap-3">
                 <div id="authButtons" class="flex items-center gap-2">
                     <button onclick="openAuthModal('login')" class="px-4 py-2 text-sm font-semibold text-slate-300 hover:text-white rounded-lg transition-colors">Log In</button>
@@ -108,12 +102,10 @@
             </div>
         </header>
 
-        <!-- Main Scrollable View -->
         <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
             
-            <!-- 🟢 HOME VIEW -->
+            <!-- HOME VIEW -->
             <section id="view-home" class="view-section space-y-10 animate-[fadeIn_0.3s_ease-out]">
-                <!-- Hero -->
                 <div class="relative rounded-3xl overflow-hidden min-h-[350px] bg-gradient-to-r from-slate-900 via-brand-900/40 to-slate-900 border border-slate-800 flex items-end">
                     <img src="https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=1200&q=80" class="absolute inset-0 w-full h-full object-cover opacity-40 mix-blend-overlay">
                     <div class="relative z-10 p-8 sm:p-12 w-full space-y-4">
@@ -123,7 +115,6 @@
                     </div>
                 </div>
 
-                <!-- Featured Grid -->
                 <div class="space-y-5">
                     <div class="flex items-end justify-between border-b border-slate-800 pb-2">
                         <h2 class="text-2xl font-bold text-white tracking-tight">Featured Tracks</h2>
@@ -133,7 +124,7 @@
                 </div>
             </section>
 
-            <!-- 🟢 MUSIC DIRECTORY VIEW -->
+            <!-- MUSIC VIEW -->
             <section id="view-music" class="view-section space-y-8 hidden animate-[fadeIn_0.3s_ease-out]">
                 <div class="border-b border-slate-800 pb-4">
                     <h1 class="text-3xl font-black text-white tracking-tight">Explore Catalog</h1>
@@ -142,7 +133,7 @@
                 <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6" id="musicCatalogGrid"></div>
             </section>
 
-            <!-- 🟢 ARTISTS VIEW -->
+            <!-- ARTISTS VIEW -->
             <section id="view-artists" class="view-section space-y-8 hidden animate-[fadeIn_0.3s_ease-out]">
                 <div class="border-b border-slate-800 pb-4">
                     <h1 class="text-3xl font-black text-white tracking-tight">Top Creators</h1>
@@ -151,8 +142,7 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6" id="artistDirectoryGrid"></div>
             </section>
 
-            <!-- 🟢 DASHBOARDS -->
-            <!-- User Dashboard -->
+            <!-- USER DASHBOARD -->
             <section id="view-user-dash" class="view-section space-y-8 hidden animate-[fadeIn_0.3s_ease-out]">
                 <div class="glass-panel p-8 rounded-3xl border border-slate-800 flex items-center gap-6">
                     <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80" class="w-24 h-24 rounded-full border-4 border-brand-500 object-cover shadow-xl">
@@ -163,7 +153,7 @@
                 </div>
             </section>
 
-            <!-- Artist Dashboard -->
+            <!-- ARTIST DASHBOARD -->
             <section id="view-artist-dash" class="view-section space-y-8 hidden animate-[fadeIn_0.3s_ease-out]">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
                     <div>
@@ -185,7 +175,7 @@
                 </div>
             </section>
 
-            <!-- Admin Dashboard -->
+            <!-- ADMIN DASHBOARD -->
             <section id="view-admin-dash" class="view-section space-y-8 hidden animate-[fadeIn_0.3s_ease-out]">
                 <div class="border-b border-slate-800 pb-4">
                     <h1 class="text-3xl font-black text-red-400 tracking-tight flex items-center gap-2"><i class="fa-solid fa-shield-halved"></i> Admin Control</h1>
@@ -205,7 +195,7 @@
         </main>
     </div>
 
-    <!-- 🟢 BOTTOM AUDIO PLAYER -->
+    <!-- BOTTOM AUDIO PLAYER -->
     <div class="fixed bottom-0 left-0 right-0 z-50 bg-[#0b0f19]/90 backdrop-blur-xl border-t border-slate-800 px-4 py-4 shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
         <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
             <div class="flex items-center gap-4 w-full sm:w-1/3">
@@ -229,7 +219,6 @@
         </div>
     </div>
 
-    <!-- Hidden HTML5 Audio -->
     <audio id="audioPlayer" class="hidden"></audio>
 
     <!-- AUTH MODAL -->
@@ -459,46 +448,63 @@
             `).join('');
         }
 
-        // 5. ACTIONS
+        // 5. UPLOAD WITH DEBUG ALERTS
         async function handleUploadTrack(e) {
             e.preventDefault();
+            
             const title = document.getElementById('uploadTitle').value;
             const genre = document.getElementById('uploadGenre').value;
             const file = document.getElementById('uploadFile').files[0];
 
-            if (!file) return alert("Please select an audio file.");
-            if (!currentSession) return alert("You must be logged in.");
+            if (!file) return alert("ERROR: No file selected. Please pick an MP3.");
+            if (!currentSession) return alert("ERROR: You are not logged in.");
+
+            alert("Step 1: Starting upload for file: " + file.name);
 
             try {
                 const fileExt = file.name.split('.').pop();
                 const fileName = `${Date.now()}.${fileExt}`;
                 const filePath = `${currentSession.user.id}/${fileName}`;
 
+                alert("Step 2: Trying to upload to Supabase Storage...");
                 const { error: uploadError } = await supabaseClient.storage.from('audio').upload(filePath, file);
-                if (uploadError) throw uploadError;
+                
+                if (uploadError) {
+                    alert("STORAGE ERROR: " + uploadError.message);
+                    return;
+                }
 
+                alert("Step 3: Storage upload successful! Getting URL...");
                 const { data: urlData } = supabaseClient.storage.from('audio').getPublicUrl(filePath);
                 
+                alert("Step 4: Trying to save to Database...");
                 const { error: dbError } = await supabaseClient.from('songs').insert([{
                     title: title,
                     artist: currentSession.user.email.split('@')[0],
                     genre: genre,
-                    status: 'Pending',
+                    status: 'Approved',
+                    is_featured: true,
                     audio_url: urlData.publicUrl,
                     created_by: currentSession.user.id,
-                    is_featured: true,
                     cover: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=400&q=80'
                 }]);
-                if (dbError) throw dbError;
+                
+                if (dbError) {
+                    alert("DATABASE ERROR: " + dbError.message);
+                    return;
+                }
 
-                alert("Success! Track uploaded. Check Admin Dashboard.");
+                alert("Step 5: SUCCESS! Everything saved.");
                 closeUploadModal();
                 document.getElementById('uploadForm').reset();
-                fetchSongs();
+                fetchSongs(); 
+                
             } catch (error) {
-                alert("Error: " + error.message);
+                alert("UNKNOWN ERROR: " + error.message);
             }
         }
 
         async function approveTrack(id) {
-            if (currentRole !== '
+            if (currentRole !== 'admin') return alert('Access Denied');
+            const { error } = await supabaseClient.from('songs').update({ status: 'Approved' }).eq('id', id);
+            if (error) alert
