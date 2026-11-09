@@ -35,6 +35,16 @@
         .scrollbar-thin::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
         .animate-spin-slow { animation: spin 8s linear infinite; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
+        
+        /* Custom Audio Slider Styling */
+        input[type=range] { -webkit-appearance: none; background: transparent; }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none; height: 12px; width: 12px; border-radius: 50%;
+            background: #14b8a6; cursor: pointer; margin-top: -4px;
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%; height: 4px; cursor: pointer; background: #334155; border-radius: 2px;
+        }
     </style>
 </head>
 <body class="bg-darkbg text-slate-100 flex flex-col min-h-screen pb-28 scrollbar-thin overflow-x-hidden">
@@ -48,11 +58,6 @@
             <span class="text-xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-teal-400 via-cyan-400 to-purple-500">BeatPulse</span>
         </div>
 
-        <div class="hidden md:flex flex-1 max-w-md relative">
-            <input type="text" id="globalSearch" placeholder="Search songs, artists..." class="w-full bg-slate-800/80 border border-slate-700/80 rounded-full py-2 pl-10 pr-4 text-sm text-slate-200 placeholder-slate-400 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all">
-            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-slate-400 text-sm"></i>
-        </div>
-
         <nav class="hidden lg:flex items-center gap-1 text-sm font-medium">
             <button onclick="switchView('home')" id="nav-home" class="nav-btn px-3 py-2 rounded-lg hover:text-brand-500 transition-colors">Home</button>
             <button onclick="switchView('music')" id="nav-music" class="nav-btn px-3 py-2 rounded-lg text-slate-400 hover:text-brand-500 transition-colors">Music</button>
@@ -64,21 +69,12 @@
                 <button onclick="openAuthModal('login')" class="px-3.5 py-1.5 text-xs font-semibold text-slate-300 hover:text-white rounded-lg transition-colors">Log In</button>
                 <button onclick="openAuthModal('register')" class="px-3.5 py-1.5 text-xs font-semibold bg-gradient-to-r from-brand-500 to-brand-accent text-white rounded-lg shadow-md shadow-brand-500/20 hover:opacity-90 transition-all glow-accent">Sign Up</button>
             </div>
-            <button onclick="toggleMobileMenu()" class="lg:hidden p-2 text-slate-400 hover:text-white">
-                <i class="fa-solid fa-bars text-xl"></i>
-            </button>
         </div>
     </header>
 
-    <!-- Mobile Menu -->
-    <div id="mobileMenu" class="hidden lg:hidden glass-panel border-b border-borderbg/50 px-4 py-3 flex-col gap-2 text-sm font-medium transition-all">
-        <button onclick="switchView('home'); toggleMobileMenu();" class="text-left py-2 px-3 rounded hover:bg-slate-800">Home</button>
-        <button onclick="switchView('music'); toggleMobileMenu();" class="text-left py-2 px-3 rounded hover:bg-slate-800">Music</button>
-        <button onclick="switchView('artists'); toggleMobileMenu();" class="text-left py-2 px-3 rounded hover:bg-slate-800">Artists</button>
-    </div>
-
     <!-- Main Content -->
     <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <!-- Home View -->
         <section id="view-home" class="view-section space-y-8">
             <div class="relative rounded-3xl overflow-hidden p-6 sm:p-10 bg-gradient-to-r from-slate-900 via-purple-950/40 to-slate-900 border border-slate-800 flex flex-col md:flex-row items-center justify-between gap-6">
                 <div class="z-10 max-w-xl space-y-4 text-center md:text-left">
@@ -94,16 +90,21 @@
             </div>
         </section>
 
+        <!-- Music View -->
         <section id="view-music" class="view-section space-y-6 hidden">
             <h1 class="text-2xl font-extrabold text-white">Music Directory</h1>
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" id="musicCatalogGrid"></div>
         </section>
 
+        <!-- Artists View -->
         <section id="view-artists" class="view-section space-y-6 hidden">
             <h1 class="text-2xl font-extrabold text-white">Featured Artists</h1>
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6" id="artistDirectoryGrid"></div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6" id="artistDirectoryGrid">
+                <!-- Default artists inserted via JS so it's not empty -->
+            </div>
         </section>
 
+        <!-- User Dashboard -->
         <section id="view-user-dash" class="view-section space-y-6 hidden">
             <div class="flex items-center gap-4 border-b border-slate-800 pb-4">
                 <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80" class="w-16 h-16 rounded-full border-2 border-brand-500 object-cover">
@@ -117,6 +118,7 @@
             </div>
         </section>
 
+        <!-- Artist Dashboard -->
         <section id="view-artist-dash" class="view-section space-y-6 hidden">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
                 <div>
@@ -137,6 +139,7 @@
             </div>
         </section>
 
+        <!-- Admin Dashboard -->
         <section id="view-admin-dash" class="view-section space-y-6 hidden">
             <h1 class="text-2xl font-extrabold text-white text-red-400 flex items-center gap-2"><i class="fa-solid fa-shield-halved"></i> Platform Administration</h1>
             <div class="glass-panel p-5 rounded-2xl border border-slate-800 space-y-4">
@@ -151,33 +154,34 @@
         </section>
     </main>
 
-    <!-- Audio Player -->
+    <!-- Audio Player (Fixed) -->
     <div class="fixed bottom-0 left-0 right-0 z-50 glass-panel border-t border-slate-800/80 px-4 py-3 shadow-2xl">
         <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
             <div class="flex items-center gap-3 w-full sm:w-1/4">
-                <img id="playerCover" src="" class="w-12 h-12 rounded-lg object-cover bg-slate-800">
+                <img id="playerCover" src="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=150&q=80" class="w-12 h-12 rounded-lg object-cover bg-slate-800">
                 <div class="min-w-0 flex-1">
                     <h4 id="playerTitle" class="text-sm font-semibold text-white truncate">Select a song</h4>
                     <p id="playerArtist" class="text-xs text-slate-400 truncate">—</p>
                 </div>
             </div>
+            
             <div class="flex flex-col items-center gap-1.5 w-full sm:w-2/4">
                 <div class="flex items-center gap-4">
-                    <button onclick="togglePlayPause()" id="playPauseBtn" class="w-10 h-10 rounded-full bg-brand-500 text-white flex items-center justify-center shadow-lg">
+                    <button onclick="togglePlayPause()" id="playPauseBtn" class="w-10 h-10 rounded-full bg-brand-500 text-white flex items-center justify-center shadow-lg hover:bg-brand-600">
                         <i class="fa-solid fa-play ml-0.5 text-base"></i>
                     </button>
                 </div>
                 <div class="flex items-center gap-2 w-full text-xs text-slate-400">
                     <span id="currentTimeText">0:00</span>
-                    <input type="range" id="seekSlider" min="0" max="100" value="0" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-brand-500">
+                    <input type="range" id="seekSlider" min="0" max="100" value="0" class="w-full appearance-none cursor-pointer accent-brand-500">
                     <span id="durationTimeText">0:00</span>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Hidden Audio Element -->
-    <audio id="audioPlayer"></audio>
+    <!-- The Actual Audio Player Element -->
+    <audio id="audioPlayer" class="hidden"></audio>
 
     <!-- Auth Modal -->
     <div id="authModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 hidden">
@@ -192,7 +196,7 @@
         </div>
     </div>
 
-    <!-- Upload Modal -->
+    <!-- Upload Modal (Fixed & Restored) -->
     <div id="uploadModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 hidden">
         <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-lg w-full p-6 relative space-y-4">
             <button onclick="closeUploadModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
@@ -222,22 +226,17 @@
     </div>
 
     <script>
-        // ==========================================
-        // ⚠️ 1. SUPABASE CREDENTIALS ⚠️
-        // ==========================================
+        // 1. SUPABASE CREDENTIALS
         const SUPABASE_URL = 'https://nbltcyeckvveshkkkzfg.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ibHRjeWVja3Z2ZXNoa2tremZnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQxODczOTAsImV4cCI6MjEwOTc2MzM5MH0.PAs7eLS7EaWjCNsJrVvZBbLKFNL5SLz5jZZl7fGfna0'; 
         
-        // FIX: Renamed variable to avoid conflict with the global window.supabase object
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         
         let currentSession = null;
         let currentRole = 'public';
         let songsData = [];
 
-        // ==========================================
         // 2. AUTH LOGIC
-        // ==========================================
         async function signUpUser(email, password) {
             const { data, error } = await supabaseClient.auth.signUp({ email, password });
             if (error) alert("Signup Error: " + error.message);
@@ -288,14 +287,11 @@
         supabaseClient.auth.onAuthStateChange((_event, session) => { updateAuthUI(session); });
         supabaseClient.auth.getSession().then(({ data: { session } }) => { updateAuthUI(session); });
 
-        // ==========================================
         // 3. MODAL CONTROLS
-        // ==========================================
         function openAuthModal(type) { 
             document.getElementById('authHeading').innerText = type === 'login' ? 'Log In' : 'Sign Up'; 
             document.getElementById('authModal').classList.remove('hidden'); 
         }
-        
         function closeAuthModal() { document.getElementById('authModal').classList.add('hidden'); }
         function openUploadModal() { document.getElementById('uploadModal').classList.remove('hidden'); }
         function closeUploadModal() { document.getElementById('uploadModal').classList.add('hidden'); }
@@ -312,9 +308,7 @@
             closeAuthModal();
         });
 
-        // ==========================================
         // 4. DATABASE FETCHING & RENDERING
-        // ==========================================
         async function fetchSongs() {
             const { data, error } = await supabaseClient.from('songs').select('*');
             if (error) { console.error("Error fetching songs:", error); return; }
@@ -325,7 +319,10 @@
             renderAdminDashboard();
         }
 
-        window.onload = function() { fetchSongs(); };
+        window.onload = function() { 
+            fetchSongs(); 
+            renderArtists();
+        };
 
         function switchView(viewId) {
             document.querySelectorAll('.view-section').forEach(sec => sec.classList.add('hidden'));
@@ -336,8 +333,6 @@
             const activeNav = document.getElementById(`nav-${viewId}`);
             if (activeNav) activeNav.classList.add('text-brand-500', 'font-bold');
         }
-
-        function toggleMobileMenu() { document.getElementById('mobileMenu').classList.toggle('hidden'); }
 
         function createSongCard(song) {
             return `
@@ -361,6 +356,22 @@
         function renderMusicCatalog() {
             const approved = songsData.filter(s => s.status === 'Approved');
             document.getElementById('musicCatalogGrid').innerHTML = approved.map(song => createSongCard(song)).join('');
+        }
+
+        function renderArtists() {
+            // Hardcoded artists so the page is not empty
+            const defaultArtists = [
+                { name: "Kevoo & Band", genre: "Arbantone", avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80" },
+                { name: "Dj Maphorisa Sound", genre: "Amapiano", avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80" },
+                { name: "Burna Wave", genre: "Afrobeats", avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80" }
+            ];
+            document.getElementById('artistDirectoryGrid').innerHTML = defaultArtists.map(a => `
+                <div class="glass-panel p-5 rounded-2xl border border-slate-800 text-center flex flex-col items-center space-y-3">
+                    <img src="${a.avatar}" class="w-20 h-20 rounded-full object-cover border-2 border-brand-500 shadow-lg">
+                    <div><h4 class="text-sm font-bold text-white">${a.name}</h4><span class="text-xs text-brand-500 font-medium">${a.genre}</span></div>
+                    <button class="px-4 py-1.5 rounded-full bg-slate-800 text-xs text-slate-200 w-full font-semibold">Follow</button>
+                </div>
+            `).join('');
         }
 
         function renderArtistDashboard() {
@@ -387,15 +398,12 @@
             `).join('');
         }
 
-        // ==========================================
         // 5. ACTIONS (UPLOAD, APPROVE, PLAY)
-        // ==========================================
         async function handleUploadTrack(e) {
             e.preventDefault();
             const title = document.getElementById('uploadTitle').value;
             const genre = document.getElementById('uploadGenre').value;
-            const fileInput = document.getElementById('uploadFile');
-            const file = fileInput.files[0];
+            const file = document.getElementById('uploadFile').files[0];
 
             if (!file) return alert("Please select an audio file.");
             if (!currentSession) return alert("You must be logged in to upload.");
@@ -444,31 +452,57 @@
             else fetchSongs();
         }
 
-        // ==========================================
-        // 6. AUDIO PLAYER
-        // ==========================================
+        // 6. AUDIO PLAYER (FIXED)
         const audioPlayer = document.getElementById('audioPlayer');
-        
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const seekSlider = document.getElementById('seekSlider');
+        const currentTimeText = document.getElementById('currentTimeText');
+        const durationTimeText = document.getElementById('durationTimeText');
+
         function playTrack(url, title, artist, cover) {
-            if (!url) return alert("No audio file found for this song.");
+            if (!url || url === 'null') {
+                alert("This is just test data and has no audio file attached. Try uploading a new track to test playback!");
+                return;
+            }
+            
             audioPlayer.src = url;
-            audioPlayer.play();
+            audioPlayer.play().catch(e => console.log("Playback error:", e));
             
             document.getElementById('playerTitle').innerText = title;
             document.getElementById('playerArtist').innerText = artist;
-            document.getElementById('playerCover').src = cover;
-            document.getElementById('playPauseBtn').innerHTML = '<i class="fa-solid fa-pause text-base"></i>';
+            document.getElementById('playerCover').src = cover || 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=150&q=80';
         }
 
         function togglePlayPause() {
-            if (audioPlayer.paused) {
-                audioPlayer.play();
-                document.getElementById('playPauseBtn').innerHTML = '<i class="fa-solid fa-pause text-base"></i>';
-            } else {
-                audioPlayer.pause();
-                document.getElementById('playPauseBtn').innerHTML = '<i class="fa-solid fa-play ml-0.5 text-base"></i>';
-            }
+            if (!audioPlayer.src) return alert("Select a song first!");
+            if (audioPlayer.paused) audioPlayer.play();
+            else audioPlayer.pause();
         }
+
+        // Audio Event Listeners
+        audioPlayer.addEventListener('play', () => playPauseBtn.innerHTML = '<i class="fa-solid fa-pause text-base"></i>');
+        audioPlayer.addEventListener('pause', () => playPauseBtn.innerHTML = '<i class="fa-solid fa-play ml-0.5 text-base"></i>');
+        
+        audioPlayer.addEventListener('loadedmetadata', () => {
+            const mins = Math.floor(audioPlayer.duration / 60);
+            const secs = Math.floor(audioPlayer.duration % 60);
+            durationTimeText.innerText = `${mins}:${secs.toString().padStart(2, '0')}`;
+        });
+
+        audioPlayer.addEventListener('timeupdate', () => {
+            if (audioPlayer.duration) {
+                seekSlider.value = (audioPlayer.currentTime / audioPlayer.duration) * 100;
+                const mins = Math.floor(audioPlayer.currentTime / 60);
+                const secs = Math.floor(audioPlayer.currentTime % 60);
+                currentTimeText.innerText = `${mins}:${secs.toString().padStart(2, '0')}`;
+            }
+        });
+
+        seekSlider.addEventListener('input', () => {
+            if (audioPlayer.duration) {
+                audioPlayer.currentTime = (seekSlider.value / 100) * audioPlayer.duration;
+            }
+        });
     </script>
 </body>
 </html>
