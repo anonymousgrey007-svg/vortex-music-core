@@ -228,7 +228,7 @@
         const SUPABASE_URL = 'https://nbltcyeckvveshkkkzfg.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ibHRjeWVja3Z2ZXNoa2tremZnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQxODczOTAsImV4cCI6MjEwOTc2MzM5MH0.PAs7eLS7EaWjCNsJrVvZBbLKFNL5SLz5jZZl7fGfna0'; 
         
-        // 👇 RENAMED VARIABLE TO FIX "ALREADY DECLARED" ERROR 👇
+        // FIX: Renamed variable to avoid conflict with the global window.supabase object
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         
         let currentSession = null;
@@ -240,13 +240,13 @@
         // ==========================================
         async function signUpUser(email, password) {
             const { data, error } = await supabaseClient.auth.signUp({ email, password });
-            if (error) alert(error.message);
+            if (error) alert("Signup Error: " + error.message);
             else alert('Account created! You are now logged in.');
         }
 
         async function loginUser(email, password) {
             const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-            if (error) alert(error.message);
+            if (error) alert("Login Error: " + error.message);
         }
 
         async function logoutUser() {
@@ -288,18 +288,32 @@
         supabaseClient.auth.onAuthStateChange((_event, session) => { updateAuthUI(session); });
         supabaseClient.auth.getSession().then(({ data: { session } }) => { updateAuthUI(session); });
 
+        // ==========================================
+        // 3. MODAL CONTROLS
+        // ==========================================
+        function openAuthModal(type) { 
+            document.getElementById('authHeading').innerText = type === 'login' ? 'Log In' : 'Sign Up'; 
+            document.getElementById('authModal').classList.remove('hidden'); 
+        }
+        
+        function closeAuthModal() { document.getElementById('authModal').classList.add('hidden'); }
+        function openUploadModal() { document.getElementById('uploadModal').classList.remove('hidden'); }
+        function closeUploadModal() { document.getElementById('uploadModal').classList.add('hidden'); }
+
         document.getElementById('authForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const email = e.target.querySelector('input[type="email"]').value;
             const password = e.target.querySelector('input[type="password"]').value;
             const isLogin = document.getElementById('authHeading').textContent === 'Log In';
+            
             if (isLogin) await loginUser(email, password);
             else await signUpUser(email, password);
+            
             closeAuthModal();
         });
 
         // ==========================================
-        // 3. DATABASE FETCHING & RENDERING
+        // 4. DATABASE FETCHING & RENDERING
         // ==========================================
         async function fetchSongs() {
             const { data, error } = await supabaseClient.from('songs').select('*');
@@ -311,9 +325,7 @@
             renderAdminDashboard();
         }
 
-        window.onload = function() {
-            fetchSongs();
-        };
+        window.onload = function() { fetchSongs(); };
 
         function switchView(viewId) {
             document.querySelectorAll('.view-section').forEach(sec => sec.classList.add('hidden'));
@@ -326,10 +338,6 @@
         }
 
         function toggleMobileMenu() { document.getElementById('mobileMenu').classList.toggle('hidden'); }
-        function openAuthModal(type) { document.getElementById('authHeading').innerText = type === 'login' ? 'Log In' : 'Sign Up'; document.getElementById('authModal').classList.remove('hidden'); }
-        function closeAuthModal() { document.getElementById('authModal').classList.add('hidden'); }
-        function openUploadModal() { document.getElementById('uploadModal').classList.remove('hidden'); }
-        function closeUploadModal() { document.getElementById('uploadModal').classList.add('hidden'); }
 
         function createSongCard(song) {
             return `
@@ -380,7 +388,7 @@
         }
 
         // ==========================================
-        // 4. ACTIONS (UPLOAD, APPROVE, PLAY)
+        // 5. ACTIONS (UPLOAD, APPROVE, PLAY)
         // ==========================================
         async function handleUploadTrack(e) {
             e.preventDefault();
@@ -437,7 +445,7 @@
         }
 
         // ==========================================
-        // 5. AUDIO PLAYER
+        // 6. AUDIO PLAYER
         // ==========================================
         const audioPlayer = document.getElementById('audioPlayer');
         
