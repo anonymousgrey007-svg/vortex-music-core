@@ -1,10 +1,470 @@
 <!DOCTYPE html>
-<html>
+<html lang="en" class="dark">
 <head>
-    <title>Vortex Music</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BeatPulse - Music Sharing Platform</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: { 50: '#f0fdfa', 500: '#14b8a6', 600: '#0d9488', 900: '#134e4a', accent: '#8b5cf6', neon: '#00f2fe' },
+                        darkbg: '#0f172a', cardbg: '#1e293b', borderbg: '#334155'
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome & Google Fonts -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Supabase Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #0b0f19; color: #f8fafc; }
+        .glass-panel { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
+        .glow-accent:hover { box-shadow: 0 0 15px rgba(20, 184, 166, 0.4); }
+        .scrollbar-thin::-webkit-scrollbar { width: 6px; height: 6px; }
+        .scrollbar-thin::-webkit-scrollbar-track { background: #0f172a; }
+        .scrollbar-thin::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+        .animate-spin-slow { animation: spin 8s linear infinite; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+    </style>
 </head>
-<body>
-    <h1>Welcome to Vortex Music</h1>
-    <p>My music platform is now live.</p>
+<body class="bg-darkbg text-slate-100 flex flex-col min-h-screen pb-28 scrollbar-thin overflow-x-hidden">
+
+    <!-- Top Navigation Bar -->
+    <header class="sticky top-0 z-40 w-full glass-panel border-b border-borderbg/50 px-4 lg:px-8 py-3 flex items-center justify-between gap-4">
+        <div class="flex items-center gap-3 cursor-pointer" onclick="switchView('home')">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-500 to-brand-accent flex items-center justify-center text-white shadow-lg shadow-brand-500/20">
+                <i class="fa-solid font-bold fa-compact-disc text-xl animate-spin-slow"></i>
+            </div>
+            <span class="text-xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-teal-400 via-cyan-400 to-purple-500">BeatPulse</span>
+        </div>
+
+        <div class="hidden md:flex flex-1 max-w-md relative">
+            <input type="text" id="globalSearch" placeholder="Search songs, artists..." class="w-full bg-slate-800/80 border border-slate-700/80 rounded-full py-2 pl-10 pr-4 text-sm text-slate-200 placeholder-slate-400 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all">
+            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-slate-400 text-sm"></i>
+        </div>
+
+        <nav class="hidden lg:flex items-center gap-1 text-sm font-medium">
+            <button onclick="switchView('home')" id="nav-home" class="nav-btn px-3 py-2 rounded-lg hover:text-brand-500 transition-colors">Home</button>
+            <button onclick="switchView('music')" id="nav-music" class="nav-btn px-3 py-2 rounded-lg text-slate-400 hover:text-brand-500 transition-colors">Music</button>
+            <button onclick="switchView('artists')" id="nav-artists" class="nav-btn px-3 py-2 rounded-lg text-slate-400 hover:text-brand-500 transition-colors">Artists</button>
+        </nav>
+
+        <div class="flex items-center gap-3">
+            <div id="authButtons" class="flex items-center gap-2">
+                <button onclick="openAuthModal('login')" class="px-3.5 py-1.5 text-xs font-semibold text-slate-300 hover:text-white rounded-lg transition-colors">Log In</button>
+                <button onclick="openAuthModal('register')" class="px-3.5 py-1.5 text-xs font-semibold bg-gradient-to-r from-brand-500 to-brand-accent text-white rounded-lg shadow-md shadow-brand-500/20 hover:opacity-90 transition-all glow-accent">Sign Up</button>
+            </div>
+            <button onclick="toggleMobileMenu()" class="lg:hidden p-2 text-slate-400 hover:text-white">
+                <i class="fa-solid fa-bars text-xl"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Mobile Menu -->
+    <div id="mobileMenu" class="hidden lg:hidden glass-panel border-b border-borderbg/50 px-4 py-3 flex-col gap-2 text-sm font-medium transition-all">
+        <button onclick="switchView('home'); toggleMobileMenu();" class="text-left py-2 px-3 rounded hover:bg-slate-800">Home</button>
+        <button onclick="switchView('music'); toggleMobileMenu();" class="text-left py-2 px-3 rounded hover:bg-slate-800">Music</button>
+        <button onclick="switchView('artists'); toggleMobileMenu();" class="text-left py-2 px-3 rounded hover:bg-slate-800">Artists</button>
+    </div>
+
+    <!-- Main Content -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <!-- Home View -->
+        <section id="view-home" class="view-section space-y-8">
+            <div class="relative rounded-3xl overflow-hidden p-6 sm:p-10 bg-gradient-to-r from-slate-900 via-purple-950/40 to-slate-900 border border-slate-800 flex flex-col md:flex-row items-center justify-between gap-6">
+                <div class="z-10 max-w-xl space-y-4 text-center md:text-left">
+                    <span class="inline-block px-3 py-1 rounded-full bg-brand-500/10 border border-brand-500/30 text-brand-500 text-xs font-semibold uppercase tracking-wider">Featured Release</span>
+                    <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight text-white leading-tight">Discover & Stream Next-Gen Sounds</h1>
+                    <p class="text-slate-400 text-sm sm:text-base">Support independent artists, curate personal playlists, and experience high-fidelity audio direct from creators.</p>
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                <h2 class="text-xl font-bold text-white flex items-center gap-2"><i class="fa-solid fa-star text-amber-400"></i> Featured Songs</h2>
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4" id="featuredGrid"></div>
+            </div>
+        </section>
+
+        <!-- Music View -->
+        <section id="view-music" class="view-section space-y-6 hidden">
+            <h1 class="text-2xl font-extrabold text-white">Music Directory</h1>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" id="musicCatalogGrid"></div>
+        </section>
+
+        <!-- Artists View -->
+        <section id="view-artists" class="view-section space-y-6 hidden">
+            <h1 class="text-2xl font-extrabold text-white">Featured Artists</h1>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6" id="artistDirectoryGrid"></div>
+        </section>
+
+        <!-- User Dashboard -->
+        <section id="view-user-dash" class="view-section space-y-6 hidden">
+            <div class="flex items-center gap-4 border-b border-slate-800 pb-4">
+                <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80" class="w-16 h-16 rounded-full border-2 border-brand-500 object-cover">
+                <div>
+                    <h1 class="text-2xl font-bold text-white" id="userNameDisplay">User Profile</h1>
+                    <p class="text-xs text-brand-500 font-medium">Standard Listener Account</p>
+                </div>
+            </div>
+            <div class="glass-panel p-5 rounded-2xl text-xs text-slate-400">
+                Welcome to your dashboard! Here you will see your playlists and favorite tracks.
+            </div>
+        </section>
+
+        <!-- Artist Dashboard -->
+        <section id="view-artist-dash" class="view-section space-y-6 hidden">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+                <div>
+                    <h1 class="text-2xl font-extrabold text-white flex items-center gap-2">Artist Creator Portal <i class="fa-solid fa-circle-check text-brand-500 text-base"></i></h1>
+                </div>
+                <button onclick="openUploadModal()" class="px-4 py-2 rounded-xl bg-gradient-to-r from-brand-500 to-brand-accent text-white font-semibold text-sm shadow-md hover:opacity-90 flex items-center gap-2 self-start sm:self-auto">
+                    <i class="fa-solid fa-cloud-arrow-up"></i> Upload New Track
+                </button>
+            </div>
+            <div class="glass-panel rounded-2xl p-5 border border-slate-800 space-y-4">
+                <h3 class="text-lg font-bold text-white">My Uploaded Catalog</h3>
+                <table class="w-full text-left text-sm text-slate-300">
+                    <thead class="text-xs uppercase bg-slate-800/80 text-slate-400 border-b border-slate-700">
+                        <tr><th class="p-3">Track</th><th class="p-3">Status</th></tr>
+                    </thead>
+                    <tbody id="artistSongsTableBody"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Admin Dashboard -->
+        <section id="view-admin-dash" class="view-section space-y-6 hidden">
+            <h1 class="text-2xl font-extrabold text-white text-red-400 flex items-center gap-2"><i class="fa-solid fa-shield-halved"></i> Platform Administration</h1>
+            <div class="glass-panel p-5 rounded-2xl border border-slate-800 space-y-4">
+                <h3 class="text-lg font-bold text-white">Pending Upload Approval Queue</h3>
+                <table class="w-full text-left text-sm">
+                    <thead class="text-xs uppercase bg-slate-800 text-slate-400 border-b border-slate-700">
+                        <tr><th class="p-3">Track Info</th><th class="p-3 text-right">Moderation</th></tr>
+                    </thead>
+                    <tbody id="adminApprovalTable"></tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <!-- Audio Player -->
+    <div class="fixed bottom-0 left-0 right-0 z-50 glass-panel border-t border-slate-800/80 px-4 py-3 shadow-2xl">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div class="flex items-center gap-3 w-full sm:w-1/4">
+                <img id="playerCover" src="" class="w-12 h-12 rounded-lg object-cover bg-slate-800">
+                <div class="min-w-0 flex-1">
+                    <h4 id="playerTitle" class="text-sm font-semibold text-white truncate">Select a song</h4>
+                    <p id="playerArtist" class="text-xs text-slate-400 truncate">—</p>
+                </div>
+            </div>
+            <div class="flex flex-col items-center gap-1.5 w-full sm:w-2/4">
+                <div class="flex items-center gap-4">
+                    <button onclick="togglePlayPause()" id="playPauseBtn" class="w-10 h-10 rounded-full bg-brand-500 text-white flex items-center justify-center shadow-lg">
+                        <i class="fa-solid fa-play ml-0.5 text-base"></i>
+                    </button>
+                </div>
+                <div class="flex items-center gap-2 w-full text-xs text-slate-400">
+                    <span id="currentTimeText">0:00</span>
+                    <input type="range" id="seekSlider" min="0" max="100" value="0" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-brand-500">
+                    <span id="durationTimeText">0:00</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden Audio Element -->
+    <audio id="audioPlayer"></audio>
+
+    <!-- Auth Modal -->
+    <div id="authModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-sm w-full p-6 relative space-y-4">
+            <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            <h3 id="authHeading" class="text-xl font-bold text-white">Log In</h3>
+            <form id="authForm" class="space-y-3">
+                <input type="email" required placeholder="Email" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs text-white focus:border-brand-500 focus:outline-none">
+                <input type="password" required placeholder="Password" minlength="6" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs text-white focus:border-brand-500 focus:outline-none">
+                <button type="submit" class="w-full py-3 bg-gradient-to-r from-brand-500 to-brand-accent text-white font-semibold text-xs rounded-xl shadow-lg hover:opacity-90">Continue</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Upload Modal -->
+    <div id="uploadModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-lg w-full p-6 relative space-y-4">
+            <button onclick="closeUploadModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            <h3 class="text-xl font-bold text-white">Upload New Track</h3>
+            <form id="uploadForm" onsubmit="handleUploadTrack(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1">Song Title</label>
+                    <input type="text" id="uploadTitle" required class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs text-white focus:border-brand-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1">Genre</label>
+                    <select id="uploadGenre" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs text-white focus:border-brand-500 focus:outline-none">
+                        <option value="Arbantone">Arbantone</option>
+                        <option value="Gengetone">Gengetone</option>
+                        <option value="Afrobeats">Afrobeats</option>
+                        <option value="Amapiano">Amapiano</option>
+                        <option value="Hip-Hop">Hip-Hop</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1">Audio File</label>
+                    <input type="file" id="uploadFile" accept="audio/*" required class="w-full text-xs text-slate-300 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:bg-brand-500 file:text-white file:text-xs file:font-semibold cursor-pointer">
+                </div>
+                <button type="submit" class="w-full py-3 bg-gradient-to-r from-brand-500 to-brand-accent text-white font-semibold text-xs rounded-xl shadow-lg hover:opacity-90">Submit for Review</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // ⚠️ 1. SUPABASE CREDENTIALS ⚠️
+        // ==========================================
+        const SUPABASE_URL = 'https://nbltcyeckvveshkkkzfg.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ibHRjeWVja3Z2ZXNoa2tremZnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQxODczOTAsImV4cCI6MjEwOTc2MzM5MH0.PAs7eLS7EaWjCNsJrVvZBbLKFNL5SLz5jZZl7fGfna0'; 
+        
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        let currentSession = null;
+        let currentRole = 'public';
+        let songsData = [];
+
+        // ==========================================
+        // 2. AUTH LOGIC
+        // ==========================================
+        async function signUpUser(email, password) {
+            const { data, error } = await supabase.auth.signUp({ email, password });
+            if (error) alert(error.message);
+            else alert('Account created! You are now logged in.');
+        }
+
+        async function loginUser(email, password) {
+            const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+            if (error) alert(error.message);
+        }
+
+        async function logoutUser() {
+            const { error } = await supabase.auth.signOut();
+            if (error) alert(error.message);
+        }
+
+        async function updateAuthUI(session) {
+            currentSession = session;
+            const authButtons = document.getElementById('authButtons');
+
+            if (session) {
+                const user = session.user;
+                const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+                currentRole = profile ? profile.role : 'user';
+                
+                const nameDisplay = document.getElementById('userNameDisplay');
+                if (nameDisplay) nameDisplay.innerText = user.email;
+
+                authButtons.innerHTML = `
+                    <span class="text-xs text-brand-500 font-semibold hidden sm:inline">${user.email}</span>
+                    <button onclick="logoutUser()" class="px-3.5 py-1.5 text-xs font-semibold text-slate-300 hover:text-white rounded-lg border border-slate-700">Log Out</button>
+                `;
+
+                if (currentRole === 'artist') switchView('artist-dash');
+                else if (currentRole === 'admin') switchView('admin-dash');
+                else switchView('user-dash');
+            } else {
+                currentRole = 'public';
+                authButtons.innerHTML = `
+                    <button onclick="openAuthModal('login')" class="px-3.5 py-1.5 text-xs font-semibold text-slate-300 hover:text-white rounded-lg">Log In</button>
+                    <button onclick="openAuthModal('register')" class="px-3.5 py-1.5 text-xs font-semibold bg-gradient-to-r from-brand-500 to-brand-accent text-white rounded-lg shadow-md hover:opacity-90">Sign Up</button>
+                `;
+                switchView('home');
+            }
+            fetchSongs(); // Refresh lists on login/logout
+        }
+
+        supabase.auth.onAuthStateChange((_event, session) => { updateAuthUI(session); });
+        supabase.auth.getSession().then(({ data: { session } }) => { updateAuthUI(session); });
+
+        document.getElementById('authForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = e.target.querySelector('input[type="email"]').value;
+            const password = e.target.querySelector('input[type="password"]').value;
+            const isLogin = document.getElementById('authHeading').textContent === 'Log In';
+            if (isLogin) await loginUser(email, password);
+            else await signUpUser(email, password);
+            closeAuthModal();
+        });
+
+        // ==========================================
+        // 3. DATABASE FETCHING & RENDERING
+        // ==========================================
+        async function fetchSongs() {
+            const { data, error } = await supabase.from('songs').select('*');
+            if (error) { console.error("Error fetching songs:", error); return; }
+            songsData = data;
+            renderHomeSection();
+            renderMusicCatalog();
+            renderArtistDashboard();
+            renderAdminDashboard();
+        }
+
+        window.onload = function() {
+            fetchSongs();
+        };
+
+        function switchView(viewId) {
+            document.querySelectorAll('.view-section').forEach(sec => sec.classList.add('hidden'));
+            const target = document.getElementById(`view-${viewId}`);
+            if (target) target.classList.remove('hidden');
+            
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('text-brand-500', 'font-bold'));
+            const activeNav = document.getElementById(`nav-${viewId}`);
+            if (activeNav) activeNav.classList.add('text-brand-500', 'font-bold');
+        }
+
+        function toggleMobileMenu() { document.getElementById('mobileMenu').classList.toggle('hidden'); }
+        function openAuthModal(type) { document.getElementById('authHeading').innerText = type === 'login' ? 'Log In' : 'Sign Up'; document.getElementById('authModal').classList.remove('hidden'); }
+        function closeAuthModal() { document.getElementById('authModal').classList.add('hidden'); }
+        function openUploadModal() { document.getElementById('uploadModal').classList.remove('hidden'); }
+        function closeUploadModal() { document.getElementById('uploadModal').classList.add('hidden'); }
+
+        function createSongCard(song) {
+            return `
+                <div class="glass-panel p-3 rounded-2xl border border-slate-800 group">
+                    <div class="relative rounded-xl overflow-hidden mb-2.5 aspect-square">
+                        <img src="${song.cover}" class="w-full h-full object-cover">
+                        <button onclick="playTrack('${song.audio_url}', '${song.title}', '${song.artist}', '${song.cover}')" class="absolute inset-0 m-auto w-10 h-10 rounded-full bg-brand-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"><i class="fa-solid fa-play ml-0.5 text-xs"></i></button>
+                    </div>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase">${song.genre}</span>
+                    <h4 class="text-xs font-bold text-white truncate">${song.title}</h4>
+                    <p class="text-[11px] text-slate-400 truncate">${song.artist}</p>
+                </div>
+            `;
+        }
+
+        function renderHomeSection() {
+            const featured = songsData.filter(s => s.is_featured && s.status === 'Approved');
+            document.getElementById('featuredGrid').innerHTML = featured.map(song => createSongCard(song)).join('');
+        }
+
+        function renderMusicCatalog() {
+            const approved = songsData.filter(s => s.status === 'Approved');
+            document.getElementById('musicCatalogGrid').innerHTML = approved.map(song => createSongCard(song)).join('');
+        }
+
+        function renderArtistDashboard() {
+            if (!currentSession) return;
+            const mySongs = songsData.filter(s => s.created_by === currentSession.user.id);
+            document.getElementById('artistSongsTableBody').innerHTML = mySongs.map(s => `
+                <tr class="border-b border-slate-800">
+                    <td class="p-3 text-white">${s.title}</td>
+                    <td class="p-3 text-xs ${s.status === 'Approved' ? 'text-emerald-400' : 'text-amber-400'}">${s.status}</td>
+                </tr>
+            `).join('');
+        }
+
+        function renderAdminDashboard() {
+            const pending = songsData.filter(s => s.status === 'Pending');
+            document.getElementById('adminApprovalTable').innerHTML = pending.map(s => `
+                <tr class="border-b border-slate-800">
+                    <td class="p-3 text-white">${s.title} by ${s.artist}</td>
+                    <td class="p-3 text-right space-x-2">
+                        <button onclick="approveTrack(${s.id})" class="px-2 py-1 bg-emerald-500 text-white rounded text-xs">Approve</button>
+                        <button onclick="rejectTrack(${s.id})" class="px-2 py-1 bg-red-500 text-white rounded text-xs">Reject</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // ==========================================
+        // 4. ACTIONS (UPLOAD, APPROVE, PLAY)
+        // ==========================================
+        async function handleUploadTrack(e) {
+            e.preventDefault();
+            const title = document.getElementById('uploadTitle').value;
+            const genre = document.getElementById('uploadGenre').value;
+            const fileInput = document.getElementById('uploadFile');
+            const file = fileInput.files[0];
+
+            if (!file) return alert("Please select an audio file.");
+            if (!currentSession) return alert("You must be logged in to upload.");
+
+            try {
+                const fileExt = file.name.split('.').pop();
+                const fileName = `${Date.now()}.${fileExt}`;
+                const filePath = `${currentSession.user.id}/${fileName}`;
+
+                const { error: uploadError } = await supabase.storage.from('audio').upload(filePath, file);
+                if (uploadError) throw uploadError;
+
+                const { data: urlData } = supabase.storage.from('audio').getPublicUrl(filePath);
+                
+                const { error: dbError } = await supabase.from('songs').insert([{
+                    title: title,
+                    artist: currentSession.user.email.split('@')[0],
+                    genre: genre,
+                    status: 'Pending',
+                    audio_url: urlData.publicUrl,
+                    created_by: currentSession.user.id,
+                    cover: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=400&q=80'
+                }]);
+                if (dbError) throw dbError;
+
+                alert("Track uploaded! Pending admin approval.");
+                closeUploadModal();
+                document.getElementById('uploadForm').reset();
+                fetchSongs();
+            } catch (error) {
+                alert("Error: " + error.message);
+            }
+        }
+
+        async function approveTrack(id) {
+            if (currentRole !== 'admin') return alert('Access Denied');
+            const { error } = await supabase.from('songs').update({ status: 'Approved' }).eq('id', id);
+            if (error) alert(error.message);
+            else fetchSongs();
+        }
+
+        async function rejectTrack(id) {
+            if (currentRole !== 'admin') return alert('Access Denied');
+            const { error } = await supabase.from('songs').delete().eq('id', id);
+            if (error) alert(error.message);
+            else fetchSongs();
+        }
+
+        // ==========================================
+        // 5. AUDIO PLAYER
+        // ==========================================
+        const audioPlayer = document.getElementById('audioPlayer');
+        
+        function playTrack(url, title, artist, cover) {
+            if (!url) return alert("No audio file found for this song.");
+            audioPlayer.src = url;
+            audioPlayer.play();
+            
+            document.getElementById('playerTitle').innerText = title;
+            document.getElementById('playerArtist').innerText = artist;
+            document.getElementById('playerCover').src = cover;
+            document.getElementById('playPauseBtn').innerHTML = '<i class="fa-solid fa-pause text-base"></i>';
+        }
+
+        function togglePlayPause() {
+            if (audioPlayer.paused) {
+                audioPlayer.play();
+                document.getElementById('playPauseBtn').innerHTML = '<i class="fa-solid fa-pause text-base"></i>';
+            } else {
+                audioPlayer.pause();
+                document.getElementById('playPauseBtn').innerHTML = '<i class="fa-solid fa-play ml-0.5 text-base"></i>';
+            }
+        }
+    </script>
 </body>
 </html>
