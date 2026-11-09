@@ -79,7 +79,6 @@
 
     <!-- Main Content -->
     <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <!-- Home View -->
         <section id="view-home" class="view-section space-y-8">
             <div class="relative rounded-3xl overflow-hidden p-6 sm:p-10 bg-gradient-to-r from-slate-900 via-purple-950/40 to-slate-900 border border-slate-800 flex flex-col md:flex-row items-center justify-between gap-6">
                 <div class="z-10 max-w-xl space-y-4 text-center md:text-left">
@@ -95,19 +94,16 @@
             </div>
         </section>
 
-        <!-- Music View -->
         <section id="view-music" class="view-section space-y-6 hidden">
             <h1 class="text-2xl font-extrabold text-white">Music Directory</h1>
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" id="musicCatalogGrid"></div>
         </section>
 
-        <!-- Artists View -->
         <section id="view-artists" class="view-section space-y-6 hidden">
             <h1 class="text-2xl font-extrabold text-white">Featured Artists</h1>
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6" id="artistDirectoryGrid"></div>
         </section>
 
-        <!-- User Dashboard -->
         <section id="view-user-dash" class="view-section space-y-6 hidden">
             <div class="flex items-center gap-4 border-b border-slate-800 pb-4">
                 <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80" class="w-16 h-16 rounded-full border-2 border-brand-500 object-cover">
@@ -121,7 +117,6 @@
             </div>
         </section>
 
-        <!-- Artist Dashboard -->
         <section id="view-artist-dash" class="view-section space-y-6 hidden">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
                 <div>
@@ -142,7 +137,6 @@
             </div>
         </section>
 
-        <!-- Admin Dashboard -->
         <section id="view-admin-dash" class="view-section space-y-6 hidden">
             <h1 class="text-2xl font-extrabold text-white text-red-400 flex items-center gap-2"><i class="fa-solid fa-shield-halved"></i> Platform Administration</h1>
             <div class="glass-panel p-5 rounded-2xl border border-slate-800 space-y-4">
@@ -234,7 +228,9 @@
         const SUPABASE_URL = 'https://nbltcyeckvveshkkkzfg.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ibHRjeWVja3Z2ZXNoa2tremZnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQxODczOTAsImV4cCI6MjEwOTc2MzM5MH0.PAs7eLS7EaWjCNsJrVvZBbLKFNL5SLz5jZZl7fGfna0'; 
         
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // 👇 RENAMED VARIABLE TO FIX "ALREADY DECLARED" ERROR 👇
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
         let currentSession = null;
         let currentRole = 'public';
         let songsData = [];
@@ -243,18 +239,18 @@
         // 2. AUTH LOGIC
         // ==========================================
         async function signUpUser(email, password) {
-            const { data, error } = await supabase.auth.signUp({ email, password });
+            const { data, error } = await supabaseClient.auth.signUp({ email, password });
             if (error) alert(error.message);
             else alert('Account created! You are now logged in.');
         }
 
         async function loginUser(email, password) {
-            const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+            const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
             if (error) alert(error.message);
         }
 
         async function logoutUser() {
-            const { error } = await supabase.auth.signOut();
+            const { error } = await supabaseClient.auth.signOut();
             if (error) alert(error.message);
         }
 
@@ -264,7 +260,7 @@
 
             if (session) {
                 const user = session.user;
-                const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+                const { data: profile } = await supabaseClient.from('profiles').select('role').eq('id', user.id).single();
                 currentRole = profile ? profile.role : 'user';
                 
                 const nameDisplay = document.getElementById('userNameDisplay');
@@ -286,11 +282,11 @@
                 `;
                 switchView('home');
             }
-            fetchSongs(); // Refresh lists on login/logout
+            fetchSongs();
         }
 
-        supabase.auth.onAuthStateChange((_event, session) => { updateAuthUI(session); });
-        supabase.auth.getSession().then(({ data: { session } }) => { updateAuthUI(session); });
+        supabaseClient.auth.onAuthStateChange((_event, session) => { updateAuthUI(session); });
+        supabaseClient.auth.getSession().then(({ data: { session } }) => { updateAuthUI(session); });
 
         document.getElementById('authForm').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -306,7 +302,7 @@
         // 3. DATABASE FETCHING & RENDERING
         // ==========================================
         async function fetchSongs() {
-            const { data, error } = await supabase.from('songs').select('*');
+            const { data, error } = await supabaseClient.from('songs').select('*');
             if (error) { console.error("Error fetching songs:", error); return; }
             songsData = data;
             renderHomeSection();
@@ -401,12 +397,12 @@
                 const fileName = `${Date.now()}.${fileExt}`;
                 const filePath = `${currentSession.user.id}/${fileName}`;
 
-                const { error: uploadError } = await supabase.storage.from('audio').upload(filePath, file);
+                const { error: uploadError } = await supabaseClient.storage.from('audio').upload(filePath, file);
                 if (uploadError) throw uploadError;
 
-                const { data: urlData } = supabase.storage.from('audio').getPublicUrl(filePath);
+                const { data: urlData } = supabaseClient.storage.from('audio').getPublicUrl(filePath);
                 
-                const { error: dbError } = await supabase.from('songs').insert([{
+                const { error: dbError } = await supabaseClient.from('songs').insert([{
                     title: title,
                     artist: currentSession.user.email.split('@')[0],
                     genre: genre,
@@ -428,14 +424,14 @@
 
         async function approveTrack(id) {
             if (currentRole !== 'admin') return alert('Access Denied');
-            const { error } = await supabase.from('songs').update({ status: 'Approved' }).eq('id', id);
+            const { error } = await supabaseClient.from('songs').update({ status: 'Approved' }).eq('id', id);
             if (error) alert(error.message);
             else fetchSongs();
         }
 
         async function rejectTrack(id) {
             if (currentRole !== 'admin') return alert('Access Denied');
-            const { error } = await supabase.from('songs').delete().eq('id', id);
+            const { error } = await supabaseClient.from('songs').delete().eq('id', id);
             if (error) alert(error.message);
             else fetchSongs();
         }
